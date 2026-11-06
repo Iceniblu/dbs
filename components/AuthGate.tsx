@@ -37,8 +37,9 @@ export default function AuthGate({
       return;
     }
     let live = true;
-    supabase.from("apps").select("slug").eq("slug", app).maybeSingle().then(({ data }) => {
-      if (live) setAllowed(!!data);
+    // has_app_access: the admin, or someone ticked "DBS access" on /admin (migration 0001).
+    supabase.rpc("has_app_access", { p_slug: app }).then(({ data }) => {
+      if (live) setAllowed(data === true);
     });
     return () => {
       live = false;
