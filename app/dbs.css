@@ -250,3 +250,29 @@ body.dbs-page main { padding-top: 0; }
 .dbs .ds-field input.choose { border: 1px dashed #C62828; background: #FFF6F5; }
 .ds-spec-grid { align-items: start; }
 .ds-check { align-content: start; }
+
+/* ---- navy band with a right-hand panel (datasheet: project info and actions) ---- */
+.dbs-hero-main { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; position: relative; z-index: 1; }
+.dbs-hero-main .dbs-titles { flex: 1 1 320px; }
+.dbs-hero-side { flex: 0 1 440px; min-width: 0; margin-top: 24px; }
+.ds-project { display: grid; gap: 10px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 4px; padding: 14px 16px; }
+.ds-project-h { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); font-weight: 500; }
+.dbs .ds-project .ds-field > span { color: rgba(255, 255, 255, 0.75); }
+.dbs .ds-project .ds-field input { background: #fff; color: var(--ink); border-color: transparent; }
+.dbs .ds-project .ds-actions { margin-top: 2px; }
+.dbs .ds-project .ds-actions button:not(.ghost) { background: var(--teal-ink); border-color: var(--teal-ink); }
+.dbs .ds-project .ds-actions button:not(.ghost):hover { background: #08877B; }
+.dbs .ds-project .ds-actions button.ghost { color: #fff; border-color: rgba(255, 255, 255, 0.4); background: transparent; }
+.dbs .ds-project .ds-actions button.ghost:hover { border-color: var(--teal); color: var(--teal); }
+.ds-project-check { font-size: 0.85rem; color: #FFB4AB; }
+.ds-project .error { color: #FFB4AB; margin: 0; }
+@media (max-width: 700px) { .dbs-hero-side { flex-basis: 100%; } }
+
+/* Type: its own small panel above Import */
+.ds-type { gap: 4px; padding-top: 12px; padding-bottom: 12px; }
+.ds-type .ds-field { max-width: 220px; }
+
+/* Other specifications: collapsed by default */
+details.ds-extras { border-top: 1px solid var(--line); padding-top: 8px; }
+details.ds-extras > summary { cursor: pointer; font-size: 0.8rem; font-weight: 500; color: var(--navy); text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 0; }
+details.ds-extras[open] > summary { margin-bottom: 6px; }

@@ -13,12 +13,14 @@ export default function DbsShell({
   subtitle,
   email,
   back,
+  aside,
   children,
 }: {
   title: string;
   subtitle?: string;
   email?: string;
   back?: { href: string; label: string }; // omitted on the home page
+  aside?: React.ReactNode; // shown on the right of the navy band (below the title on phones)
   children: React.ReactNode;
 }) {
   const { display_name } = useProfile();
@@ -40,9 +42,12 @@ export default function DbsShell({
           </div>
         </div>
         <Logo />
-        <div className="dbs-titles">
-          <h1>{title}</h1>
-          {subtitle && <p>{subtitle}</p>}
+        <div className="dbs-hero-main">
+          <div className="dbs-titles">
+            <h1>{title}</h1>
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+          {aside && <div className="dbs-hero-side">{aside}</div>}
         </div>
         <Mark tone="light" size={220} />
       </header>
