@@ -16,7 +16,7 @@ export const SPEC_FIELDS = [
   { key: "tilt", label: "Tilt", example: "30 degree" },
   { key: "cri", label: "CRI", example: "90" },
   { key: "cct", label: "Colour temperature", example: "3000K", bold: true },
-  { key: "lumens", label: "Delivered lumens", example: "1000 lm" },
+  { key: "lumens", label: "Delivered lumens", example: "1000 lm (linear: lm/m)" },
   { key: "load", label: "Connected load", example: "20W" },
 ] as const;
 export type SpecKey = (typeof SPEC_FIELDS)[number]["key"];
