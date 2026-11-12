@@ -163,13 +163,17 @@ body.dbs-page main { padding-top: 0; }
 }
 .ds-preview { container-type: inline-size; }
 .ds-sheet-head { position: absolute; left: 0; top: 0; width: 100%; }
-.ds-sheet-pics { position: absolute; left: calc(42.52 * var(--u)); right: calc(42.52 * var(--u)); top: calc(112 * var(--u)); height: calc(175 * var(--u)); display: grid; grid-template-columns: 1fr 1fr; }
+/* one table like the .docx: picture row (226.75pt, grey line above = the line under the header), then title and rows */
+.ds-sheet-pics { position: absolute; left: calc(42.52 * var(--u)); right: calc(42.52 * var(--u)); top: calc(64 * var(--u)); height: calc(226.75 * var(--u)); display: grid; grid-template-columns: 1fr 1fr; border-top: 0.5px solid #BFBFBF; box-sizing: border-box; }
 .ds-sheet-pics > div { display: grid; place-items: center; min-width: 0; }
-.ds-sheet-pics img { max-width: calc(171 * var(--u)); max-height: calc(171 * var(--u)); object-fit: contain; }
-.ds-sheet-table { position: absolute; left: calc(42.52 * var(--u)); width: calc(510.28 * var(--u)); top: calc(318 * var(--u)); border-collapse: collapse; font-size: calc(10 * var(--u)); line-height: 1.5; table-layout: fixed; }
-.ds-sheet-table th { background: #F3EFE4; color: #06A796; font-weight: 400; text-align: left; font-size: calc(14 * var(--u)); padding: calc(7 * var(--u)) calc(5.4 * var(--u)); border-top: 0.5px solid #BFBFBF; border-bottom: 0.5px solid #BFBFBF; }
-.ds-sheet-table td { padding: calc(6 * var(--u)) calc(5.4 * var(--u)); border-bottom: 0.5px solid #BFBFBF; vertical-align: top; word-wrap: break-word; }
-.ds-sheet-table .ds-sheet-label { width: calc(118.8 * var(--u)); }
+.ds-sheet-pics img { max-width: calc(210 * var(--u)); max-height: calc(200 * var(--u)); object-fit: contain; }
+.ds-sheet-table { position: absolute; left: calc(42.52 * var(--u)); width: calc(510.25 * var(--u)); top: calc(290.75 * var(--u)); border-collapse: collapse; font-size: calc(10 * var(--u)); line-height: 1.25; table-layout: fixed; }
+.ds-sheet-table th { background: #F3EFE4; color: #06A796; font-weight: 400; text-align: left; font-size: calc(14 * var(--u)); padding: calc(5.85 * var(--u)) calc(5.4 * var(--u)); border-top: 0.5px solid #BFBFBF; border-bottom: 0.5px solid #BFBFBF; }
+/* cell padding 2.85pt + 3pt before/after every line (each line is its own paragraph in Word) */
+.ds-sheet-table td { padding: calc(2.85 * var(--u)) calc(5.4 * var(--u)); border-bottom: 0.5px solid #BFBFBF; vertical-align: top; word-wrap: break-word; }
+.ds-sheet-table td > div { margin: calc(3 * var(--u)) 0; } /* margins collapse to 3pt between lines, as Word renders them */
+.ds-sheet-table td:first-child { padding-top: calc(5.85 * var(--u)); padding-bottom: calc(5.85 * var(--u)); }
+.ds-sheet-table .ds-sheet-label { width: calc(113.4 * var(--u)); }
 .ds-sheet-foot { position: absolute; left: calc(42.52 * var(--u)); width: calc(488.5 * var(--u)); top: calc(800 * var(--u)); display: flex; justify-content: space-between; color: #BFBFBF; font-size: calc(7.5 * var(--u)); line-height: 1.4; }
 .ds-sheet-foot b { color: #A6A6A6; }
 .ds-sheet-hatch { position: absolute; left: calc(518 * var(--u)); top: calc(798 * var(--u)); width: calc(77.32 * var(--u)); }

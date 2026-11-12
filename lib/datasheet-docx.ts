@@ -1,5 +1,5 @@
 import {
-  AlignmentType, BorderStyle, Document, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, Packer, PageNumber,
+  AlignmentType, BorderStyle, Document, Footer, Header, HorizontalPositionRelativeFrom, ImageRun, LineRuleType, Packer, PageNumber,
   Paragraph, ShadingType, Table, TableCell, TableLayoutType, TableRow, TabStopType, TextRun, VerticalAlign,
   VerticalPositionRelativeFrom, WidthType,
 } from "docx";
@@ -7,7 +7,8 @@ import { heading, outRows, runs, type OutLine, type Picture, type Sheet } from "
 
 // Builds the .docx in the browser, matching the DBS electrical schedule pages (A4, DM Sans, navy-to-teal
 // header bar and logo, cream title row, grey row rules, footer with document reference, page x of y and
-// the teal hatch). Header/footer art lives in public/dbs/*.png. Measurements are taken from Type_D4.pdf.
+// the teal hatch). Header/footer art lives in public/dbs/*.png. Measurements are taken from Type_D4.pdf;
+// table spacing, grid and borders match Simon's corrected D2 datasheet (one table: pictures, title, rows).
 
 const PT = 20;           // twips per point
 const EMU = 12700;       // EMU per point
@@ -19,8 +20,11 @@ const GREY = "BFBFBF";
 
 const PAGE_W = 595.32;
 const MARGIN_X = 42.52;  // 1.5 cm
-const TABLE_W = PAGE_W - 2 * MARGIN_X;
-const LABEL_W = 118.8;
+const GRID = [2268, 2834, 5103]; // twips: label | rest of the photo cell | drawing cell
+const TABLE_TW = GRID[0] + GRID[1] + GRID[2]; // 10205
+const PICTURE_ROW = 4535;        // twips (226.75pt)
+// 3pt before/after, single line ("auto" must be explicit: without it some readers use an exact 12pt line)
+const TEXT_SPACING = { before: 60, after: 60, line: 240, lineRule: LineRuleType.AUTO };
 
 async function bytesOf(src: string) {
   const res = await fetch(src);
@@ -41,7 +45,7 @@ function cellText(lines: OutLine[]) {
   return (lines.length ? lines : [{ text: " ", unchecked: false }]).map(
     (line) =>
       new Paragraph({
-        spacing: { before: 0, after: 0, line: 300 },
+        spacing: TEXT_SPACING,
         children: runs(line.text || " ").map((r) => new TextRun({ text: r.text, bold: r.bold })),
       })
   );
@@ -61,7 +65,7 @@ export async function buildDocx(sheet: Sheet): Promise<Blob> {
           new ImageRun({
             type: "png",
             data: headerArt,
-            transformation: { width: Math.round(PAGE_W * PX), height: Math.round(90 * PX) },
+            transformation: { width: Math.round(PAGE_W * PX), height: Math.round(50 * PX) },
             floating: {
               horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: 0 },
               verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 0 },
@@ -103,42 +107,37 @@ export async function buildDocx(sheet: Sheet): Promise<Blob> {
     ],
   });
 
-  // Pictures side by side: product photo left, dimension drawing right (as in the schedules).
-  const picCell = (i: 0 | 1, maxW: number, maxH: number) => {
+  // One table, as in the DBS schedules: pictures (photo left, drawing right), the cream title row, then the rows.
+  // Grey lines come from the table (top, bottom, between rows); the top one is the line under the header.
+  const picCell = (i: 0 | 1) => {
     const p = [sheet.product, sheet.drawing][i];
     const data = pics[i];
     return new TableCell({
-      width: { size: Math.round((TABLE_W / 2) * PT), type: WidthType.DXA },
+      columnSpan: i === 0 ? 2 : 1,
+      width: { size: i === 0 ? GRID[0] + GRID[1] : GRID[2], type: WidthType.DXA },
       verticalAlign: VerticalAlign.CENTER,
-      borders: { top: none, bottom: none, left: none, right: none },
       children: [
         new Paragraph({
           alignment: AlignmentType.CENTER,
+          spacing: { before: 60, after: 60 }, // no line rule: the picture sets the line height
           children:
             p && data
-              ? [new ImageRun({ type: kind(p), data, transformation: fit(p, maxW, maxH) })]
+              ? [new ImageRun({ type: kind(p), data, transformation: fit(p, 210, 200) })]
               : [new ImageRun({ type: "png", data: placeholders[i], transformation: { width: Math.round(150 * PX), height: Math.round(150 * PX) } })],
         }),
       ],
     });
   };
-  const pictures = new Table({
-    layout: TableLayoutType.FIXED,
-    width: { size: Math.round(TABLE_W * PT), type: WidthType.DXA },
-    columnWidths: [Math.round((TABLE_W / 2) * PT), Math.round((TABLE_W / 2) * PT)],
-    borders: { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none },
-    rows: [new TableRow({ height: { value: Math.round(175 * PT), rule: "atLeast" }, children: [picCell(0, 171, 171), picCell(1, 171, 171)] })],
-  });
+  const pictureRow = new TableRow({ cantSplit: true, height: { value: PICTURE_ROW, rule: "atLeast" }, children: [picCell(0), picCell(1)] });
 
-  const margins = { top: 6 * PT, bottom: 6 * PT, left: 5.4 * PT, right: 5.4 * PT };
   const titleRow = new TableRow({
+    cantSplit: true,
     children: [
       new TableCell({
-        columnSpan: 2,
+        columnSpan: 3,
+        width: { size: TABLE_TW, type: WidthType.DXA },
         shading: { type: ShadingType.CLEAR, color: "auto", fill: CREAM },
-        borders: { top: rule, bottom: rule, left: none, right: none },
-        margins: { ...margins, top: 7 * PT, bottom: 7 * PT },
-        children: [new Paragraph({ spacing: { after: 0 }, children: [new TextRun({ text: heading(sheet) || " ", size: 28, color: TEAL })] })],
+        children: [new Paragraph({ spacing: TEXT_SPACING, children: [new TextRun({ text: heading(sheet) || " ", size: 28, color: TEAL })] })],
       }),
     ],
   });
@@ -147,27 +146,18 @@ export async function buildDocx(sheet: Sheet): Promise<Blob> {
       new TableRow({
         cantSplit: true,
         children: [
-          new TableCell({
-            width: { size: Math.round(LABEL_W * PT), type: WidthType.DXA },
-            borders: { top: none, bottom: rule, left: none, right: none },
-            margins,
-            children: cellText([{ text: r.label, unchecked: false }]),
-          }),
-          new TableCell({
-            width: { size: Math.round((TABLE_W - LABEL_W) * PT), type: WidthType.DXA },
-            borders: { top: none, bottom: rule, left: none, right: none },
-            margins,
-            children: cellText(r.lines),
-          }),
+          new TableCell({ width: { size: GRID[0], type: WidthType.DXA }, children: cellText([{ text: r.label, unchecked: false }]) }),
+          new TableCell({ columnSpan: 2, width: { size: GRID[1] + GRID[2], type: WidthType.DXA }, children: cellText(r.lines) }),
         ],
       })
   );
   const table = new Table({
     layout: TableLayoutType.FIXED,
-    width: { size: Math.round(TABLE_W * PT), type: WidthType.DXA },
-    columnWidths: [Math.round(LABEL_W * PT), Math.round((TABLE_W - LABEL_W) * PT)],
-    borders: { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none },
-    rows: [titleRow, ...bodyRows],
+    width: { size: TABLE_TW, type: WidthType.DXA },
+    columnWidths: GRID,
+    margins: { marginUnitType: WidthType.DXA, top: 57, bottom: 57, left: 108, right: 108 }, // 2.85pt / 5.4pt
+    borders: { top: rule, bottom: rule, insideHorizontal: rule, left: none, right: none, insideVertical: none },
+    rows: [pictureRow, titleRow, ...bodyRows],
   });
 
   const doc = new Document({
@@ -179,12 +169,12 @@ export async function buildDocx(sheet: Sheet): Promise<Blob> {
         properties: {
           page: {
             size: { width: Math.round(PAGE_W * PT), height: Math.round(841.92 * PT) },
-            margin: { top: Math.round(112 * PT), bottom: Math.round(62 * PT), left: Math.round(MARGIN_X * PT), right: Math.round(MARGIN_X * PT), header: 0, footer: Math.round(21 * PT) },
+            margin: { top: Math.round(65 * PT), bottom: Math.round(62 * PT), left: Math.round(MARGIN_X * PT), right: Math.round(MARGIN_X * PT), header: 0, footer: Math.round(21 * PT) },
           },
         },
         headers: { default: header },
         footers: { default: footer },
-        children: [pictures, new Paragraph({ spacing: { before: 0, after: 0, line: 240 }, children: [] }), new Paragraph({ spacing: { after: 8 * PT }, children: [] }), table],
+        children: [table, new Paragraph({ spacing: { before: 0, after: 0, line: 240 }, children: [] })],
       },
     ],
   });

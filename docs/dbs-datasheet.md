@@ -17,6 +17,8 @@ Makes a single-page datasheet in the layout of the DBS electrical schedules and 
 
 **Import (best effort):** a product page link, a PDF datasheet link, an uploaded PDF or picture (up to 3 MB), or pasted text, with optional "options to pick" hints (a URL fragment such as `#smart-lotis-115` is a hint too). Reads product data hidden in the page's code (Next.js data, JSON in attributes such as Vue `:product-data`, Inertia `data-page`), and automatically reads the product's datasheet PDF in the same request when the page links one. Lists other pictures and PDFs found on the page.
 
+**Word layout:** one table, matched to Simon's corrected D2 datasheet: picture row (226.75pt; photo cell 2268+2834 twips, drawing cell 5103), cream title row, then the rows (label 2268 twips, value 7937). Grey 0.5pt `BFBFBF` lines come from the table (top, bottom, between rows); the top one is the line under the header. Every paragraph is 3pt before / 3pt after, single line (`lineRule` auto, set explicitly); cell padding 2.85pt top/bottom, 5.4pt sides. Colour temperature stays bold. Lumens always carry a unit: `lm` for single luminaires, `lm/m` for linear luminaires by length.
+
 **Footer:** document reference and copyright line, remembered in the browser. The draft is kept in this browser until "Start new"; drafts from the older free-row layout are converted.
 
 ## Setup

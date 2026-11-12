@@ -256,7 +256,7 @@ House style, from an existing DBS datasheet (type D4):
     tilt: "30 degree"  (only for adjustable/tiltable fittings; "" for fixed fittings)
     cri: "90"
     colour_temperature: "3000K"
-    delivered_lumens: "1000 lm"  (lumens out of the luminaire; if only LED/source lumens are given leave this "" and add an extra "Source lumens")
+    delivered_lumens: "1000 lm"  (lumens out of the luminaire, always with the unit; for linear luminaires sold by length give it per metre, e.g. "1200 lm/m"; if only LED/source lumens are given leave this "" and add an extra "Source lumens")
     connected_load: "20W"  (system / circuit watts including driver where given)
   extras: other specs an electrical engineer would want, as {label, value}, e.g. {"IK rating","IK08"}, {"UGR","<19"}, {"Dimming","DALI"}, {"Cut-out","105 DIA"}, {"Emergency","Integral 2 hour"}. Only a few that matter, none repeating the specs above.
   dimensions: "115 DIA x 73 H" or "300 x 1200 x 70 H"  (millimetres; DIA for diameter, W x L x H for rectangular)
@@ -267,7 +267,7 @@ Products often come in several versions (wattages, colour temperatures, beams, f
 - spec_options: for each spec field, every choice offered, in the same formats as specs (e.g. cct ["2700K","3000K","4000K"], beam_angle ["10 degree","18 degree"], connected_load ["4W","9W","13W"]). [] when there is only one value or none.
 - specs: when there is exactly one value, use it. When there are several, use the one the person's hints or the URL fragment point to; if nothing points to one, leave that spec "" so the person picks (do not guess).
 - finish_options: every finish/colour offered (e.g. ["White","Black","Black Gold"]); finish follows the same rule as specs.
-- lumen_table: every delivered/luminaire lumens figure you can find by connected load and colour temperature, e.g. {"load":"13W","cct":"3000K","lumens":"1190 lm"}; cct "" when the figure doesn't depend on it. Fill delivered_lumens from this table only when both the load and colour temperature are settled.
+- lumen_table: every delivered/luminaire lumens figure you can find by connected load and colour temperature, e.g. {"load":"13W","cct":"3000K","lumens":"1190 lm"}, or per metre for linear luminaires ("1200 lm/m"); always include the unit; cct "" when the figure doesn't depend on it. Fill delivered_lumens from this table only when both the load and colour temperature are settled.
 - If the web page and the PDF datasheet disagree (e.g. different colour temperatures or finishes offered), say so in warnings and prefer the PDF for figures.`;
 
 const SCHEMA = {
