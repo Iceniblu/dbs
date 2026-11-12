@@ -247,7 +247,13 @@ If the material covers several variants (sizes, wattages, colour temperatures, b
 
 House style, from an existing DBS datasheet (type D4):
   title: "RECESSED FIXED DOWNLIGHT"  (what the fitting is, in capitals, no brand)
-  description: ["Smart Lotis 115 LED GE recessed fixed downlight", "Supplied with DALI driver"]
+  description: exactly two short lines, no brand or product name (those go in brand and code):
+    line 1: mounting type then luminaire type, sentence case, e.g. "Ceiling recessed LED directional downlight",
+      "Suspended LED linear extrusion", "Suspended LED downlight", "Grid ceiling recessed LED troffer light",
+      "Track mounted directional spotlight", "Rigid LED strip integrated into joinery"
+    line 2: "Supplied with remote DALI driver" if the fitting is recessed, or "Supplied with integral DALI driver"
+      if it is surface mounted, suspended or track mounted (DBS specifies DALI as standard; for other mountings use
+      whichever of the two the product's driver arrangement matches)
   brand: "Modular"   (the manufacturer's brand name as it is usually written, without "Pty Ltd" etc.; the supplier and contact come from DBS's own supplier list)
   code: "Smart Lotis 500mA"  (the manufacturer's product or order code)
   specs (values only, in exactly these formats; "" when the material doesn't say or it doesn't apply):

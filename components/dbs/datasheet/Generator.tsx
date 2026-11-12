@@ -48,6 +48,7 @@ export default function Generator({ email }: { email?: string }) {
   const [dir, setDir] = useState<Directory | null>(null);
   const [dirError, setDirError] = useState(false);
   const [addingBrand, setAddingBrand] = useState(false);
+  const [extrasOpen, setExtrasOpen] = useState(false); // "Other specifications" starts collapsed
 
   // Restore this browser's draft (and the last document reference) once.
   useEffect(() => {
@@ -188,10 +189,36 @@ export default function Generator({ email }: { email?: string }) {
 
   const contact = brandMatch && dir ? contactFor(brandMatch, dir, true) : null;
 
+  // Project info and the main actions, on the right of the navy band.
+  const projectPanel = (
+    <div className="ds-project">
+      <span className="ds-project-h">Project</span>
+      <label className="ds-field">
+        <span>Document reference</span>
+        <input type="text" placeholder="26019-SPE-E-02 [B] Electrical Schedules" value={sheet.docRef} onChange={(e) => setSheet((s) => ({ ...s, docRef: e.target.value }))} />
+      </label>
+      <label className="ds-field">
+        <span>Copyright line</span>
+        <input type="text" value={sheet.copyright} onChange={(e) => setSheet((s) => ({ ...s, copyright: e.target.value }))} />
+      </label>
+      <div className="ds-actions">
+        <button type="button" onClick={download} disabled={saving}>{saving ? "Making file…" : "Download Word (.docx)"}</button>
+        <button type="button" className="ghost" onClick={startOver}>Start new</button>
+        {toCheck > 0 && <span className="ds-project-check">{toCheck} to check</span>}
+      </div>
+      {saveError && <p className="error">{saveError}</p>}
+    </div>
+  );
+
   return (
-    <DbsShell title="Datasheet generator" subtitle="Turn a product page, PDF or pasted specs into a DBS datasheet in Word." email={email} back={{ href: "/", label: "All tools" }}>
+    <DbsShell title="Datasheet generator" subtitle="Turn a product page, PDF or pasted specs into a DBS datasheet in Word." email={email} back={{ href: "/", label: "All tools" }} aside={projectPanel}>
       <div className="ds-layout">
         <div className="ds-form">
+          <section className="ds-panel ds-type">
+            <CheckField label="Type" field={sheet.type} placeholder="D4" onChange={(v) => setText("type", v)} onCheck={() => checkText("type")} />
+            <p className="dbs-muted ds-note">The fitting&rsquo;s schedule type, as on the drawings (e.g. D4, L1, EX2).</p>
+          </section>
+
           <ImportPanel busy={busy} error={importError} onImport={doImport} />
 
           {result && (
@@ -241,17 +268,14 @@ export default function Generator({ email }: { email?: string }) {
           <section className="ds-panel">
             <h2 className="dbs-h">Datasheet</h2>
 
-            <div className="ds-two">
-              <CheckField label="Type" field={sheet.type} placeholder="D4" onChange={(v) => setText("type", v)} onCheck={() => checkText("type")} />
-              <CheckField label="Designation" field={sheet.title} placeholder="RECESSED FIXED DOWNLIGHT" onChange={(v) => setText("title", v)} onCheck={() => checkText("title")} />
-            </div>
+            <CheckField label="Designation" field={sheet.title} placeholder="RECESSED FIXED DOWNLIGHT" onChange={(v) => setText("title", v)} onCheck={() => checkText("title")} />
 
             <div className="ds-pics">
               <PictureSlot label="Product photo" value={sheet.product} onChange={(p) => setSheet((s) => ({ ...s, product: p }))} />
               <PictureSlot label="Dimension drawing" value={sheet.drawing} onChange={(p) => setSheet((s) => ({ ...s, drawing: p }))} />
             </div>
 
-            <CheckField label="Description" multiline field={sheet.description} placeholder="Smart Lotis 115 LED GE recessed fixed downlight" onChange={(v) => setText("description", v)} onCheck={() => checkText("description")} />
+            <CheckField label="Description" multiline field={sheet.description} placeholder={"Ceiling recessed LED directional downlight\nSupplied with remote DALI driver"} onChange={(v) => setText("description", v)} onCheck={() => checkText("description")} />
 
             <label className="ds-field">
               <span>Brand</span>
@@ -328,23 +352,23 @@ export default function Generator({ email }: { email?: string }) {
                   />
                 ))}
               </div>
-              {sheet.extras.length > 0 && (
-                <div className="ds-extras">
-                  <span className="ds-label">Other specifications</span>
-                  {sheet.extras.map((e) => (
-                    <div key={e.id} className={`ds-extra${e.suggested ? " suggested" : ""}`}>
-                      <input type="text" aria-label="Specification name" placeholder="Name" value={e.label} onChange={(ev) => setExtra(e.id, { label: ev.target.value })} />
-                      <input type="text" aria-label="Specification value" placeholder="Value" value={e.value} onChange={(ev) => setExtra(e.id, { value: ev.target.value })} />
-                      {e.suggested && <button type="button" className="ds-tick" onClick={() => setExtra(e.id, { suggested: false })} title="Add to the datasheet">✓ Add</button>}
-                      <button type="button" className="ghost ds-icon" aria-label={`Remove ${e.label || "specification"}`} onClick={() => removeExtra(e.id)}>✕</button>
-                    </div>
-                  ))}
-                  {sheet.extras.some((e) => e.suggested) && <p className="dbs-muted ds-note">Suggested lines (dark red) only go on the sheet once you tick ✓ Add.</p>}
+              <details className="ds-extras" open={extrasOpen} onToggle={(e) => setExtrasOpen((e.currentTarget as HTMLDetailsElement).open)}>
+                <summary>
+                  Other specifications{sheet.extras.length > 0 && <> ({sheet.extras.length}{sheet.extras.some((x) => x.suggested) ? `, ${sheet.extras.filter((x) => x.suggested).length} suggested` : ""})</>}
+                </summary>
+                {sheet.extras.map((e) => (
+                  <div key={e.id} className={`ds-extra${e.suggested ? " suggested" : ""}`}>
+                    <input type="text" aria-label="Specification name" placeholder="Name" value={e.label} onChange={(ev) => setExtra(e.id, { label: ev.target.value })} />
+                    <input type="text" aria-label="Specification value" placeholder="Value" value={e.value} onChange={(ev) => setExtra(e.id, { value: ev.target.value })} />
+                    {e.suggested && <button type="button" className="ds-tick" onClick={() => setExtra(e.id, { suggested: false })} title="Add to the datasheet">✓ Add</button>}
+                    <button type="button" className="ghost ds-icon" aria-label={`Remove ${e.label || "specification"}`} onClick={() => removeExtra(e.id)}>✕</button>
+                  </div>
+                ))}
+                {sheet.extras.some((e) => e.suggested) && <p className="dbs-muted ds-note">Suggested lines (dark red) only go on the sheet once you tick ✓ Add.</p>}
+                <div className="row">
+                  <button type="button" className="ghost ds-small" onClick={() => setSheet((s) => ({ ...s, extras: [...s.extras, { id: newId(), label: "", value: "" }] }))}>+ Add specification</button>
                 </div>
-              )}
-              <div className="row">
-                <button type="button" className="ghost ds-small" onClick={() => setSheet((s) => ({ ...s, extras: [...s.extras, { id: newId(), label: "", value: "" }] }))}>+ Add specification</button>
-              </div>
+              </details>
             </fieldset>
 
             <CheckField label="Dimensions" field={sheet.dimensions} placeholder="300 x 1200 x 70 H" onChange={(v) => setText("dimensions", v)} onCheck={() => checkText("dimensions")} />
@@ -359,24 +383,6 @@ export default function Generator({ email }: { email?: string }) {
             <CheckField label="Notes" multiline field={sheet.notes} onChange={(v) => setText("notes", v)} onCheck={() => checkText("notes")} />
           </section>
 
-          <section className="ds-panel">
-            <h2 className="dbs-h">Footer</h2>
-            <label className="ds-field">
-              <span>Document reference</span>
-              <input type="text" placeholder="26019-SPE-E-02 [B] Electrical Schedules" value={sheet.docRef} onChange={(e) => setSheet((s) => ({ ...s, docRef: e.target.value }))} />
-            </label>
-            <label className="ds-field">
-              <span>Copyright line</span>
-              <input type="text" value={sheet.copyright} onChange={(e) => setSheet((s) => ({ ...s, copyright: e.target.value }))} />
-            </label>
-          </section>
-
-          <div className="ds-actions">
-            <button type="button" onClick={download} disabled={saving}>{saving ? "Making file…" : "Download Word (.docx)"}</button>
-            <button type="button" className="ghost" onClick={startOver}>Start new</button>
-            {toCheck > 0 && <span className="ds-red ds-small-text">{toCheck} to check</span>}
-          </div>
-          {saveError && <p className="error">{saveError}</p>}
           <p className="dbs-muted ds-note">Your draft is kept in this browser until you start a new one. Red is only shown on screen; the Word file prints normally.</p>
         </div>
 

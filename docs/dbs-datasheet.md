@@ -19,7 +19,11 @@ Makes a single-page datasheet in the layout of the DBS electrical schedules and 
 
 **Word layout:** one table, matched to Simon's corrected D2 datasheet: picture row (226.75pt; photo cell 2268+2834 twips, drawing cell 5103), cream title row, then the rows (label 2268 twips, value 7937). Grey 0.5pt `BFBFBF` lines come from the table (top, bottom, between rows); the top one is the line under the header. Every paragraph is 3pt before / 3pt after, single line (`lineRule` auto, set explicitly); cell padding 2.85pt top/bottom, 5.4pt sides. Colour temperature stays bold. Lumens always carry a unit: `lm` for single luminaires, `lm/m` for linear luminaires by length.
 
-**Footer:** document reference and copyright line, remembered in the browser. The draft is kept in this browser until "Start new"; drafts from the older free-row layout are converted.
+**Page layout:** the navy band holds the project info on the right: document reference and copyright line (the Word footer, remembered in the browser), **Download Word** and **Start new**. Type sits above Import. "Other specifications" is collapsed by default.
+
+**Description:** two lines. Line 1: mounting type then luminaire type (e.g. "Ceiling recessed LED directional downlight", "Suspended LED linear extrusion", "Track mounted directional spotlight"). Line 2: "Supplied with remote DALI driver" if recessed, "Supplied with integral DALI driver" if surface mounted, suspended or track mounted. No brand or product name (they go in Supplier and Code).
+
+**Footer text:** The draft is kept in this browser until "Start new"; drafts from the older free-row layout are converted.
 
 ## Setup
 Import needs `ANTHROPIC_API_KEY` (server-side, already used by J.A.R.V.I.S.). Optional `DBS_DATASHEET_MODEL` overrides the model (default `claude-opus-5-5`, low effort, with the API's default refusal fallback). Without the key, everything except import works.
