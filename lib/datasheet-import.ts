@@ -248,7 +248,8 @@ If the material covers several variants (sizes, wattages, colour temperatures, b
 House style, from an existing DBS datasheet (type D4):
   title: "RECESSED FIXED DOWNLIGHT"  (what the fitting is, in capitals, no brand)
   description: exactly two short lines, no brand or product name (those go in brand and code):
-    line 1: mounting type then luminaire type, sentence case, e.g. "Ceiling recessed LED directional downlight",
+    line 1: mounting type then luminaire type, sentence case. Mounting wording DBS uses: "Surface mounted", "Rod suspended",
+      "Wire suspended", "Ceiling recessed", "Grid ceiling recessed", "Track mounted". E.g. "Ceiling recessed LED directional downlight",
       "Suspended LED linear extrusion", "Suspended LED downlight", "Grid ceiling recessed LED troffer light",
       "Track mounted directional spotlight", "Rigid LED strip integrated into joinery"
     line 2: "Supplied with remote DALI driver" if the fitting is recessed, or "Supplied with integral DALI driver"
@@ -267,6 +268,8 @@ House style, from an existing DBS datasheet (type D4):
   extras: other specs an electrical engineer would want, as {label, value}, e.g. {"IK rating","IK08"}, {"UGR","<19"}, {"Dimming","DALI"}, {"Cut-out","105 DIA"}, {"Emergency","Integral 2 hour"}. Only a few that matter, none repeating the specs above.
   dimensions: "115 DIA x 73 H" or "300 x 1200 x 70 H"  (millimetres; DIA for diameter, W x L x H for rectangular)
   finish: "White"  (just the colour/finish you can determine, or "" if you can't)
+  notes: usually []. When the product is lighting track itself (the track, not a spotlight that mounts on it), notes must include
+    exactly "Track supplied with all required mounting accessories to suit arrangement shown on drawings."
 Australian spelling (colour).
 
 Products often come in several versions (wattages, colour temperatures, beams, finishes) and pages list every choice, e.g. "Colour Temperature: 2700K | 3000K | 4000K" or a JSON "attributes" list.
@@ -324,7 +327,7 @@ const SCHEMA = {
   additionalProperties: false,
 };
 
-type Block =
+export type Block =
   | { type: "text"; text: string }
   | { type: "document"; source: { type: "base64"; media_type: "application/pdf"; data: string } }
   | { type: "image"; source: { type: "base64"; media_type: string; data: string } };

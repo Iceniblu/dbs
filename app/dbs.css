@@ -276,3 +276,8 @@ body.dbs-page main { padding-top: 0; }
 details.ds-extras { border-top: 1px solid var(--line); padding-top: 8px; }
 details.ds-extras > summary { cursor: pointer; font-size: 0.8rem; font-weight: 500; color: var(--navy); text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 0; }
 details.ds-extras[open] > summary { margin-bottom: 6px; }
+
+/* quick-select buttons to the right of a field label (Description mountings, standard notes) */
+.ds-check-head { flex-wrap: wrap; }
+.ds-quick { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 10px; margin-right: auto; }
+.ds-file { display: flex; gap: 8px; align-items: center; }
