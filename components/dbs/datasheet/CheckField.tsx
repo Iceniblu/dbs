@@ -4,7 +4,7 @@ import type { Field } from "@/lib/datasheet";
 
 // A datasheet value with its "needs checking" state: red until ticked or edited.
 export default function CheckField({
-  label, field, onChange, onCheck, multiline = false, placeholder, note, className, compact = false, choose = false,
+  label, field, onChange, onCheck, multiline = false, placeholder, note, className, compact = false, choose = false, quick,
 }: {
   label: string;
   field: Field;
@@ -16,6 +16,7 @@ export default function CheckField({
   className?: string;
   compact?: boolean; // small ✓ button, for the specifications grid
   choose?: boolean;  // several options offered and none picked yet
+  quick?: React.ReactNode; // quick-select buttons shown to the right of the label
 }) {
   const red = !!field.unchecked && !!field.value.trim();
   const cls = red ? "unchecked" : choose && !field.value.trim() ? "choose" : undefined;
@@ -23,6 +24,7 @@ export default function CheckField({
     <div className={`ds-field ds-check${className ? ` ${className}` : ""}`}>
       <div className="ds-check-head">
         <span>{label}</span>
+        {quick && <span className="ds-quick">{quick}</span>}
         {red && <button type="button" className="ds-tick" onClick={onCheck} title="Mark as checked" aria-label={`Mark ${label} as checked`}>{compact ? "✓" : "✓ Checked"}</button>}
       </div>
       {multiline ? (

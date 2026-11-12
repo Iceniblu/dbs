@@ -25,6 +25,30 @@ function withLumens(s: Sheet): Sheet {
   return { ...s, specs: { ...s.specs, lumens: { value: l, unchecked: true } } };
 }
 
+// Quick-select mounting for Description line 1, and the matching driver line (remote if recessed).
+const MOUNTINGS = [
+  { key: "Surface", text: "Surface mounted", remote: false },
+  { key: "Rod", text: "Rod suspended", remote: false },
+  { key: "Wire", text: "Wire suspended", remote: false },
+  { key: "Ceiling", text: "Ceiling recessed", remote: true },
+  { key: "Grid", text: "Grid ceiling recessed", remote: true },
+] as const;
+const MOUNTING_START = /^(grid ceiling recessed|ceiling recessed|surface mounted|rod suspended|wire suspended|track mounted|wall mounted|suspended|recessed|surface)\s*/i;
+const DRIVER_LINE = /^supplied with (remote|integral) dali driver\.?$/i;
+
+function withMounting(description: string, m: (typeof MOUNTINGS)[number]): string {
+  const lines = description.split("\n");
+  const rest = (lines[0] ?? "").trim().replace(MOUNTING_START, "");
+  lines[0] = `${m.text} ${rest}`.trimEnd() + (rest ? "" : " ");
+  const driver = `Supplied with ${m.remote ? "remote" : "integral"} DALI driver`;
+  if (lines.length < 2 || !lines[1].trim()) lines[1] = driver;
+  else if (DRIVER_LINE.test(lines[1].trim())) lines[1] = driver;
+  return lines.join("\n");
+}
+
+// Standard notes that can be added with one click.
+const TRACK_NOTE = "Track supplied with all required mounting accessories to suit arrangement shown on drawings.";
+
 function Chips({ options, value, onPick }: { options: string[]; value: string; onPick: (v: string) => void }) {
   const cur = value.trim().toLowerCase();
   return (
@@ -275,7 +299,21 @@ export default function Generator({ email }: { email?: string }) {
               <PictureSlot label="Dimension drawing" value={sheet.drawing} onChange={(p) => setSheet((s) => ({ ...s, drawing: p }))} />
             </div>
 
-            <CheckField label="Description" multiline field={sheet.description} placeholder={"Ceiling recessed LED directional downlight\nSupplied with remote DALI driver"} onChange={(v) => setText("description", v)} onCheck={() => checkText("description")} />
+            <CheckField
+              label="Description"
+              quick={MOUNTINGS.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  className={sheet.description.value.trim().toLowerCase().startsWith(m.text.toLowerCase() + " ") || sheet.description.value.trim().toLowerCase() === m.text.toLowerCase() ? "ds-chip on" : "ds-chip"}
+                  title={`Start with "${m.text}"`}
+                  onClick={() => setText("description", withMounting(sheet.description.value, m))}
+                >
+                  {m.key}
+                </button>
+              ))}
+              multiline
+              field={sheet.description} placeholder={"Ceiling recessed LED directional downlight\nSupplied with remote DALI driver"} onChange={(v) => setText("description", v)} onCheck={() => checkText("description")} />
 
             <label className="ds-field">
               <span>Brand</span>
@@ -380,7 +418,20 @@ export default function Generator({ email }: { email?: string }) {
               onCheck={() => checkText("finish")}
               note={sheet.finishOptions.length > 1 ? <Chips options={sheet.finishOptions} value={sheet.finish.value} onPick={(v) => setText("finish", finishText(v))} /> : null}
             />
-            <CheckField label="Notes" multiline field={sheet.notes} onChange={(v) => setText("notes", v)} onCheck={() => checkText("notes")} />
+            <CheckField
+              label="Notes"
+              quick={
+                <button
+                  type="button"
+                  className={sheet.notes.value.includes(TRACK_NOTE) ? "ds-chip on" : "ds-chip"}
+                  title={TRACK_NOTE}
+                  onClick={() => !sheet.notes.value.includes(TRACK_NOTE) && setText("notes", [sheet.notes.value.trim(), TRACK_NOTE].filter(Boolean).join("\n"))}
+                >
+                  Track accessories
+                </button>
+              }
+              multiline
+              field={sheet.notes} onChange={(v) => setText("notes", v)} onCheck={() => checkText("notes")} />
           </section>
 
           <p className="dbs-muted ds-note">Your draft is kept in this browser until you start a new one. Red is only shown on screen; the Word file prints normally.</p>

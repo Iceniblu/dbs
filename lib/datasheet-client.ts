@@ -26,7 +26,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return j;
 }
 
-export type ImportInput = { url: string } | { pdf_url: string } | { file: string; media_type: string; name: string } | { text: string };
+// Any combination of sources; they're read together in one import.
+export type ImportInput = { url?: string; pdf_url?: string; file?: string; media_type?: string; name?: string; text?: string };
 
 export const runImport = (input: ImportInput, hints: string) => post<ImportResult & { model: string }>("/api/dbs/datasheet", { ...input, hints });
 
