@@ -30,6 +30,8 @@ Makes a single-page datasheet in the layout of the DBS electrical schedules and 
 ## Setup
 Import needs `ANTHROPIC_API_KEY` (server-side, already used by J.A.R.V.I.S.). Optional `DBS_DATASHEET_MODEL` overrides the model (default `claude-opus-5-5`, low effort, with the API's default refusal fallback). Without the key, everything except import works.
 
+**Sites that block the server (error 429 / 403):** the Import box has a **Copy for DBS** bookmark (drag it to the bookmarks bar once). Clicked on a product page in the person's own browser, it copies the page as displayed (styles, SVG and inline pictures stripped) with a `DBS-PAGE-V1 <address>` marker. Pasting that anywhere in the Import box attaches it ("Page copied from …") and it is read exactly like a fetched link (`page_html` / `page_url` on the import route). We do not try to get around a site's bot protection from the server. Pictures and PDFs on such a site may still fail to load server-side: paste or upload them.
+
 Pages that build themselves with JavaScript may have little readable text: use the PDF datasheet link, upload, or paste the text instead.
 
 ## Where the logic is

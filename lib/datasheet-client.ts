@@ -27,7 +27,24 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 // Any combination of sources; they're read together in one import.
-export type ImportInput = { url?: string; pdf_url?: string; file?: string; media_type?: string; name?: string; text?: string };
+export type ImportInput = { url?: string; pdf_url?: string; page_html?: string; page_url?: string; file?: string; media_type?: string; name?: string; text?: string };
+
+// "Copy for DBS" bookmark: run on a manufacturer's page in the person's own browser, it copies the page as
+// displayed (styles, inline pictures and SVG stripped to keep it small) with this marker and the address.
+// Pasting that into the import reads the page without our server having to fetch it.
+export const PAGE_MARKER = "DBS-PAGE-V1 ";
+export const BOOKMARKLET =
+  "javascript:(function(){try{var h=document.documentElement.outerHTML.replace(/<style[\\s\\S]*?<\\/style>/gi,'').replace(/<svg[\\s\\S]*?<\\/svg>/gi,'').replace(/data:[a-z]+\\/[a-z0-9.+-]+;base64,[A-Za-z0-9+\\/=]+/gi,'');var t='" +
+  PAGE_MARKER +
+  "'+location.href+'\\n'+h;var ok=function(){alert('Copied for DBS ('+Math.round(t.length/1024)+' KB). Now paste it into the datasheet import.')};var fb=function(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();ok()};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fb)}else{fb()}}catch(e){alert('Could not copy this page: '+e)}})();";
+
+export function parseCopiedPage(text: string): { url: string; html: string } | null {
+  if (!text.startsWith(PAGE_MARKER)) return null;
+  const nl = text.indexOf("\n");
+  if (nl < 0) return null;
+  const url = text.slice(PAGE_MARKER.length, nl).trim();
+  return /^https?:\/\//i.test(url) ? { url, html: text.slice(nl + 1) } : null;
+}
 
 export const runImport = (input: ImportInput, hints: string) => post<ImportResult & { model: string }>("/api/dbs/datasheet", { ...input, hints });
 
