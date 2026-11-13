@@ -281,3 +281,9 @@ details.ds-extras[open] > summary { margin-bottom: 6px; }
 .ds-check-head { flex-wrap: wrap; }
 .ds-quick { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 10px; margin-right: auto; }
 .ds-file { display: flex; gap: 8px; align-items: center; }
+
+/* Copy for DBS bookmark and the copied-page chip (import) */
+.ds-copied { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--cream); border-left: 3px solid var(--teal-ink); padding: 8px 12px; font-size: 0.9rem; }
+.ds-bookmark summary { cursor: pointer; font-size: 0.85rem; color: var(--teal-ink); }
+.ds-bookmark ol { margin: 8px 0 4px; padding-left: 20px; display: grid; gap: 6px; font-size: 0.88rem; }
+.ds-bookmarklet { display: inline-block; background: var(--navy); color: #fff; border-radius: 999px; padding: 3px 12px; font-size: 0.82rem; font-weight: 500; text-decoration: none; cursor: grab; }

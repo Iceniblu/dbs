@@ -6,7 +6,8 @@ import type { ImportResult } from "@/lib/datasheet";
 
 // Datasheet import for DBS: reads any combination of a product page (or PDF) link, an uploaded file and
 // pasted text, in one Claude call, and returns suggested datasheet fields (see lib/datasheet-import.ts).
-// Several sources are cross-checked; conflicts come back as warnings. Needs ANTHROPIC_API_KEY.
+// A page can also arrive as HTML copied in the person's browser ("Copy for DBS" bookmark) when a site
+// refuses our server. Several sources are cross-checked; conflicts come back as warnings. Needs ANTHROPIC_API_KEY.
 
 export const maxDuration = 90;
 
@@ -14,7 +15,11 @@ const MAX_UPLOAD_B64 = 4_200_000; // Vercel caps request bodies at ~4.5 MB
 const MAX_PDF = 20_000_000;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
-type Body = { url?: unknown; pdf_url?: unknown; file?: unknown; media_type?: unknown; name?: unknown; text?: unknown; hints?: unknown };
+const MAX_PAGE_HTML = 4_000_000;
+
+// page_html / page_url: a page copied in the person's own browser with the "Copy for DBS" bookmark,
+// for sites that refuse requests from our server. It is read exactly like a fetched page.
+type Body = { url?: unknown; pdf_url?: unknown; page_html?: unknown; page_url?: unknown; file?: unknown; media_type?: unknown; name?: unknown; text?: unknown; hints?: unknown };
 
 export async function POST(req: Request) {
   const user = await getUser(req);
@@ -45,17 +50,11 @@ export async function POST(req: Request) {
     let link = s(body.url);
     let pdfLink = s(body.pdf_url);
     if (link && /\.pdf(\?|#|$)/i.test(link) && !pdfLink) [pdfLink, link] = [link, ""];
-    if (link) {
-      const { text: html, url } = await fetchText(link, {
-        accept: "text/html,application/xhtml+xml",
-        typeRe: /html|xml|text\/plain/i,
-        typeError: "That link isn't a web page. If it's a PDF, use the PDF option.",
-        maxChars: 4_000_000,
-        timeoutMs: 15000,
-      });
+    // Read one product page (fetched by us, or copied in the person's browser) into the material.
+    const readPage = async (html: string, url: string, link: string, copied: boolean) => {
       const page = digestHtml(html, url);
       const thin = page.text.length < 200 && !page.jsonld.length && !page.data;
-      const others = !!(pdfLink || s(body.file) || s(body.text));
+      const others = !!(pdfLink || s(body.file) || s(body.text) || (!copied && s(body.page_html)));
       if (thin && !others) {
         throw new ImportError("That page has almost no readable text (it may build itself with JavaScript). Add the product's PDF datasheet or paste the specification text as well.");
       }
@@ -76,7 +75,7 @@ export async function POST(req: Request) {
       }
       texts.push(
         [
-          `SOURCE: web page ${url}`,
+          `SOURCE: web page ${url}${copied ? " (copied from the person's browser as displayed)" : ""}`,
           thin ? "(This page has almost no readable text.)" : "",
           fragment ? `URL fragment (often names the variant): #${decodeURIComponent(fragment)}` : "",
           page.title ? `Page title: ${page.title}` : "",
@@ -87,9 +86,31 @@ export async function POST(req: Request) {
           `Page text:\n${page.text}`,
         ].filter(Boolean).join("\n\n")
       );
-      images = page.images;
-      pdfs = page.pdfs;
+      images = [...images, ...page.images.filter((i) => !images.some((x) => x.url === i.url))];
+      pdfs = [...pdfs, ...page.pdfs.filter((q) => !pdfs.some((x) => x.url === q.url))];
       sources.push(url);
+    };
+    if (link) {
+      const { text: html, url } = await fetchText(link, {
+        accept: "text/html,application/xhtml+xml",
+        typeRe: /html|xml|text\/plain/i,
+        typeError: "That link isn't a web page. If it's a PDF, use the PDF option.",
+        maxChars: 4_000_000,
+        timeoutMs: 15000,
+      });
+      await readPage(html, url, link, false);
+    }
+    const pageHtml = typeof body.page_html === "string" ? body.page_html : "";
+    if (pageHtml) {
+      if (pageHtml.length > MAX_PAGE_HTML) throw new ImportError("That copied page is too large. Paste the specification text or upload the PDF instead.", 413);
+      let pageUrl: URL;
+      try {
+        pageUrl = new URL(s(body.page_url));
+        if (pageUrl.protocol !== "http:" && pageUrl.protocol !== "https:") throw new Error("bad");
+      } catch {
+        throw new ImportError("That copied page has no web address. Copy it again with the Copy for DBS bookmark.");
+      }
+      await readPage(pageHtml, pageUrl.toString(), pageUrl.toString(), true);
     }
     if (pdfLink) {
       const { bytes, url } = await fetchPdf(pdfLink);
